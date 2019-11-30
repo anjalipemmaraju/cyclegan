@@ -16,7 +16,7 @@ import matplotlib.patches
 
 class Generator(nn.Module):
     def __init__(self):
-        super(Net, self).__init__()
+        super(Generator, self).__init__()
         self.conv1 = nn.Conv2d(3, 32, 9, 1)
         self.bn1 = nn.BatchNorm2d(32, affine=True)
         self.conv2 = nn.Conv2d(32, 64, 3, 2)
@@ -95,9 +95,3 @@ class Generator(nn.Module):
         x = self.bn6(x)
         x = 255*F.tanh(x)
         return x
-
-class Discriminator(nn.Module):
-    def __init__(self):
-
-    def forward():
-        
