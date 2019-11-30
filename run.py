@@ -12,20 +12,4 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches
 
-from gen import Generator
-from disc import Discriminator
-
-
-def train():
-    GenAtoB = Generator()
-    GenBtoA = Generator()
-    DiscA = Discriminator()
-    DiscB = Discriminator()
-
-
-def forward(GenAtoB, GenBtoA):
-    
-    
-
-if __name__ == '__main__':
-    pass
+from cyclegan import CycleGAN
