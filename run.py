@@ -17,7 +17,15 @@ from disc import Discriminator
 
 
 def train():
-    pass
+    GenAtoB = Generator()
+    GenBtoA = Generator()
+    DiscA = Discriminator()
+    DiscB = Discriminator()
+
+
+def forward(GenAtoB, GenBtoA):
+    
+    
 
 if __name__ == '__main__':
     pass

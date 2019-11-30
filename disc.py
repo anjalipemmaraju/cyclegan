@@ -16,15 +16,17 @@ class Discriminator(nn.Module):
     def __init__(self):
         super(Discriminator, self).__init__()
         n_maps = 64
-        self.conv1 = nn.Conv2d(3, n_maps, 7, padding=1)
-        self.conv2 = nn.Conv2d(n_maps, 2*n_maps, 7, padding=1)
-        self.conv3 = nn.Conv2d(2*n_maps, 4*n_maps, 7, padding=1)
-        self.conv4 = nn.Conv2d(4*n_maps, 8*n_maps, 7, padding=1)
+        self.conv1 = nn.Conv2d(3, n_maps, 7, padding=2)
+        self.conv2 = nn.Conv2d(n_maps, 2*n_maps, 7, padding=2)
+        self.conv3 = nn.Conv2d(2*n_maps, 4*n_maps, 7, padding=2)
+        self.conv4 = nn.Conv2d(4*n_maps, 8*n_maps, 7, padding=2)
+        self.conv5 = nn.Conv2d(8*n_maps, 1, 7, padding=1)
 
-    def forward(x):
+    def forward(self, x):
         x = self.conv1(x)
         x = self.conv2(x)
         x = self.conv3(x)
         x = self.conv4(x)
+        x = self.conv5(x)
         return x
         
