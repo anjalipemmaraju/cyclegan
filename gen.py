@@ -100,11 +100,13 @@ class Generator(nn.Module):
     #     return x
 
     def __init__(self):
+        super(Generator, self).__init__()
         ngf = 64
         n_blocks=6
         padding_type='reflect'
         use_bias = True
         norm_layer=nn.BatchNorm2d
+        use_dropout=False
         model = [nn.ReflectionPad2d(3),
                     nn.Conv2d(3, 64, kernel_size=7, padding=0, bias=True),
                     norm_layer(ngf),

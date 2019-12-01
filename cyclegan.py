@@ -24,6 +24,7 @@ class CycleGAN(nn.Module):
         self.discA = Discriminator()
         self.discB = Discriminator()
         self.criterion = torch.nn.MSELoss()
+        self.cycle_criterion = torch.nn.L1Loss()
         self.lr = 2e-4
         self.beta1 = 0.5
         self.gen_optimizer = torch.optim.Adam(itertools.chain(self.genAB.parameters(), self.genBA.parameters()),
@@ -42,16 +43,12 @@ class CycleGAN(nn.Module):
         self.realA = realA
         self.realB = realB
         # generate fake image B from real image A
-        print(f'A->B')
         self.fakeB = self.genAB(realA)
         # reconstruct image A from fake image B
-        print(f'rec A->B')
         self.recA = self.genBA(self.fakeB)
         # generate fake image A from real image B
-        print(f'B->A')
         self.fakeA = self.genBA(realB)
         # reconstruct image B from fake image A
-        print(f'rec B->A')
         self.recB = self.genAB(self.fakeA)
 
     ''' Backpropagates gradients for discriminators given
@@ -70,11 +67,11 @@ class CycleGAN(nn.Module):
         return disc_loss
 
     def discA_backward(self):
-        self.discA_loss = self.disc_backward(disc, self.realA, self.realA)
+        self.discA_loss = self.disc_backward(self.discA, self.realA, self.realA)
         return self.discA_loss.item()
 
     def discB_backward(self):
-        self.discB_loss = self.disc_backward(disc, self.realB, self.realB)
+        self.discB_loss = self.disc_backward(self.discB, self.realB, self.realB)
         return self.discB_loss.item()
 
     ''' Computes two forms of loss for each of the generators.
@@ -87,8 +84,8 @@ class CycleGAN(nn.Module):
         self.genAB_loss = self.criterion(torch.ones_like(discB_pred), discB_pred)
         discA_pred = self.discA(self.fakeA)
         self.genBA_loss = self.criterion(torch.ones_like(discA_pred), discA_pred)
-        self.recA_loss = torch.nn.L1Loss(self.recA, self.realA) * self.lambda_A
-        self.recB_loss = torch.nn.L1Loss(self.recB, self.realB) * self.lambda_B
+        self.recA_loss = self.cycle_criterion(self.recA, self.realA) * self.lambda_A
+        self.recB_loss = self.cycle_criterion(self.recB, self.realB) * self.lambda_B
         self.gen_loss = self.genAB_loss + self.genBA_loss + self.lambda_A*self.recA_loss + self.lambda_B*self.recB_loss
         self.gen_loss.backward()
         return self.gen_loss.item()
