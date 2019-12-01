@@ -21,6 +21,7 @@ class Discriminator(nn.Module):
         self.conv3 = nn.Conv2d(2*n_maps, 4*n_maps, 7, padding=2)
         self.conv4 = nn.Conv2d(4*n_maps, 8*n_maps, 7, padding=2)
         self.conv5 = nn.Conv2d(8*n_maps, 1, 7, padding=1)
+        #self.out = nn.Linear(58081, 1)
 
     def forward(self, x):
         x = self.conv1(x)
@@ -28,5 +29,6 @@ class Discriminator(nn.Module):
         x = self.conv3(x)
         x = self.conv4(x)
         x = self.conv5(x)
+        #x = self.out(x)
         return x
         

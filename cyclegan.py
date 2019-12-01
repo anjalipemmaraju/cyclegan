@@ -24,6 +24,8 @@ class CycleGAN(nn.Module):
         self.discA = Discriminator()
         self.discB = Discriminator()
         self.criterion = torch.nn.MSELoss()
+        self.lr = 2e-4
+        self.beta1 = 0.5
         self.gen_optimizer = torch.optim.Adam(itertools.chain(self.genAB.parameters(), self.genBA.parameters()),
                                               lr=self.lr,
                                               betas=(self.beta1, 0.999))
@@ -33,7 +35,6 @@ class CycleGAN(nn.Module):
         self.lambda_A = 10
         self.lambda_B = 10
 
-
     ''' Takes real domain images and forwards them through the generators
     i.e. A -> B -> A and B -> A -> B
     '''
@@ -41,14 +42,17 @@ class CycleGAN(nn.Module):
         self.realA = realA
         self.realB = realB
         # generate fake image B from real image A
-        self.fakeB = self.genAB(xA)
+        print(f'A->B')
+        self.fakeB = self.genAB(realA)
         # reconstruct image A from fake image B
+        print(f'rec A->B')
         self.recA = self.genBA(self.fakeB)
         # generate fake image A from real image B
-        self.fakeA = self.genBA(xB)
+        print(f'B->A')
+        self.fakeA = self.genBA(realB)
         # reconstruct image B from fake image A
+        print(f'rec B->A')
         self.recB = self.genAB(self.fakeA)
-
 
     ''' Backpropagates gradients for discriminators given
     a discriminator, real domain images, and fake domain images
@@ -63,13 +67,15 @@ class CycleGAN(nn.Module):
         # propagate backwards
         disc_loss = 0.5 * (disc_real_loss + disc_fake_loss)
         disc_loss.backward()
+        return disc_loss
 
     def discA_backward(self):
         self.discA_loss = self.disc_backward(disc, self.realA, self.realA)
+        return self.discA_loss.item()
 
     def discB_backward(self):
         self.discB_loss = self.disc_backward(disc, self.realB, self.realB)
-
+        return self.discB_loss.item()
 
     ''' Computes two forms of loss for each of the generators.
     Computes cycle (reconstruction) loss and adversarial loss
@@ -77,13 +83,26 @@ class CycleGAN(nn.Module):
     '''
     def gen_backward(self):
         # loss identity A and loss identity B?
-        self.genA_loss = self.criterion(torch.ones_like(self.fakeB), self.discB(self.fakeB))
-        self.genB_loss = self.criterion(torch.ones_like(self.fakeA), self.discA(self.fakeA))
-        self.recA_loss = self.criterion(self.recA, self.realA) * self.lambda_A
-        self.recB_loss = self.criterion(self.recB, self.realB) * self.lambda_B
-        self.gen_loss = self.genA_loss + self.genB_loss + self.lambda_A*self.recA_loss + self.lambda_B*self.recB_loss
+        discB_pred = self.discB(self.fakeB)
+        self.genAB_loss = self.criterion(torch.ones_like(discB_pred), discB_pred)
+        discA_pred = self.discA(self.fakeA)
+        self.genBA_loss = self.criterion(torch.ones_like(discA_pred), discA_pred)
+        self.recA_loss = torch.nn.L1Loss(self.recA, self.realA) * self.lambda_A
+        self.recB_loss = torch.nn.L1Loss(self.recB, self.realB) * self.lambda_B
+        self.gen_loss = self.genAB_loss + self.genBA_loss + self.lambda_A*self.recA_loss + self.lambda_B*self.recB_loss
         self.gen_loss.backward()
+        return self.gen_loss.item()
 
+    ''' Sets requires_grad flag for the parameters for the input networks
+    to either True or False
+    '''
+    def set_requires_grad(self, nets, requires_grad):
+        if not isinstance(nets, list):
+            nets = [nets]
+        for net in nets:
+            if net is not None:
+                for param in net.parameters():
+                    param.requires_grad = requires_grad
 
     ''' Optimizes discriminator and generator parameters
     1. Forward A->B->A and B->A->B
@@ -91,11 +110,19 @@ class CycleGAN(nn.Module):
     3. Backpropagate gradients to discriminator parameters
     '''
     def optimize_parameters(self, realA, realB):
+        losses = list()
+        # forward
         self.forward(realA, realB)
+        # backprop generator gradients (don't do discriminator gradients)
+        self.set_requires_grad([self.discA, self.discB], requires_grad=False)
         self.gen_optimizer.zero_grad()
-        self.gen_backward()
+        losses.append(self.gen_backward())
         self.gen_optimizer.step()
+        # backprop discriminator gradients (no generator upgrades beecause
+        # they are detached in the disc backwards method
+        self.set_requires_grad([self.discA, self.discB], requires_grad=True)
         self.disc_optimizer.zero_grad()
-        self.discA_backward()
-        self.discB_backward()
+        losses.append(self.discA_backward())
+        losses.append(self.discB_backward())
         self.disc_optimizer.step()
+        return losses
