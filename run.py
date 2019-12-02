@@ -30,15 +30,15 @@ def train(model, trainA, trainB, start_epoch, num_epochs=5):
 		total_loss = 0
 		for idx in tqdm(range(end_idx)):
 		#for idxB in range(100):
-				realA = trainA[idx%len(trainA)]
-				realA = torch.FloatTensor(realA).reshape(1,3,realA.shape[0], realA.shape[1]).to(device)
-				realB = trainB[idx%len(trainB)]
-				realB = torch.FloatTensor(realB).reshape(1,3,realB.shape[0], realB.shape[1]).to(device)
-				gen_loss, discA_loss, discB_loss = model.optimize_parameters(realA, realB)
-				total_loss += gen_loss
-				if idx %100 == 0:
-						avg_loss = total_loss / (idx+1)
-						tqdm.write(f'gen_loss = {avg_loss:.2f} \t discA_loss = {discA_loss:.2f} \t discB_loss = {discB_loss:.2f}')
+			realA = trainA[idx%len(trainA)]
+			realA = torch.FloatTensor(realA).reshape(1,3,realA.shape[0], realA.shape[1]).to(device)
+			realB = trainB[idx%len(trainB)]
+			realB = torch.FloatTensor(realB).reshape(1,3,realB.shape[0], realB.shape[1]).to(device)
+			gen_loss, discA_loss, discB_loss = model.optimize_parameters(realA, realB)
+			total_loss += gen_loss
+			if idx %100 == 0:
+				avg_loss = total_loss / (idx+1)
+				tqdm.write(f'gen_loss = {avg_loss:.2f} \t discA_loss = {discA_loss:.2f} \t discB_loss = {discB_loss:.2f}')
 		tqdm.write(f'gen_loss = {total_loss/end_idx:.2f} \t discA_loss = {discA_loss:.2f} \t discB_loss = {discB_loss:.2f}')
 		torch.save(model.genAB.state_dict(), f'models/gen_AB_{epoch}.pt')
 		torch.save(model.genBA.state_dict(), f'models/gen_BA_{epoch}.pt')
@@ -59,10 +59,6 @@ def test(testA, testB, epoch):
 		input_A = torch.FloatTensor(testA[i]).reshape(1,3,testA[i].shape[0], testA[i].shape[1]).to(device)
 		fake_B = genAB(input_A)
 		realA = (realA + 1)/2
-		rec_A = genBA(fake_B).detach().cpu().numpy()
-		rec_A = rec_A[0].transpose((1,2,0))
-		rec_A = (rec_A + 1)/2
-
 		fake_B = fake_B[0].detach().cpu().numpy()
 		h_size,w_size = fake_B.shape[1], fake_B.shape[2]
 		output_B = [[(fake_B[0,r,c], fake_B[1,r,c], fake_B[2,r,c]) for c in range(w_size)] for r in range(h_size)]
@@ -72,14 +68,15 @@ def test(testA, testB, epoch):
 		#fake_B = fake_B[0].transpose((1,2,0))
 		ax[i,0].imshow(realA)
 		ax[i,1].imshow(output_B)
-		ax[i,2].imshow(rec_A)
-		'''
+		# ax[i,2].imshow(rec_A)
 		input_B = torch.FloatTensor(testB[i]).reshape(1,3,testB[i].shape[0], testB[i].shape[1]).to(device)
 		fake_A = genBA(input_B).detach().cpu().numpy()
-		fake_A = fake_A[0].transpose((1,2,0))
-		ax[i,2].imshow(testB[i])
-		ax[i,3].imshow((fake_A*255).astype(np.uint8))
-		'''	
+		fake_A = np.asarray(fake_A[0].transpose((1,2,0)))
+		real_B = (testB[i] +1) / 2
+		fake_A = (fake_A + 1) / 2
+		ax[i,2].imshow(real_B)
+		ax[i,3].imshow(fake_A)
+		
 	plt.show()
 
 
@@ -114,8 +111,8 @@ if __name__ == '__main__':
 	#model.genAB.load_state_dict(torch.load(f'models/gen_AB_{epoch}.pt'))
 	#model.genBA.load_state_dict(torch.load(f'models/gen_BA_{epoch}.pt'))
 
-	train(model, trainA, trainB, start_epoch=0, num_epochs=100)
-	#test(trainA, trainB, epoch=9)
+	#train(model, trainA, trainB, start_epoch=0, num_epochs=100)
+	test(trainA, trainB, epoch=40)
 
 
 

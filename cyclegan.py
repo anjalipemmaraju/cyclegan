@@ -32,7 +32,7 @@ class CycleGAN(nn.Module):
                                               lr=self.lr,
                                               betas=(self.beta1, 0.999))
         self.disc_optimizer = torch.optim.Adam(itertools.chain(self.discA.parameters(), self.discB.parameters()),
-                                               lr=10*self.lr,
+                                               lr=self.lr,
                                                betas=(self.beta1, 0.999))
         self.lambda_A = 10
         self.lambda_B = 10
