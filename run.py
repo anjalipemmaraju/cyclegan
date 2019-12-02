@@ -44,14 +44,12 @@ def train(model, trainA, trainB, start_epoch, num_epochs=5):
 		torch.save(model.genBA.state_dict(), f'models/gen_BA_{epoch}.pt')
 
 def test(testA, testB, epoch):
-	print(testA[0])
 	np.random.shuffle(testA)
 	np.random.shuffle(testB)
 	genAB = Generator().to(device)
 	genAB.load_state_dict(torch.load(f'models/gen_AB_{epoch}.pt', map_location=torch.device('cpu')))
 	genAB.eval()
 	genBA = Generator().to(device)
-	epoch=3
 	genBA.load_state_dict(torch.load(f'models/gen_BA_{epoch}.pt', map_location=torch.device('cpu')))
 	genBA.eval()
 	num_test = 4
@@ -116,8 +114,8 @@ if __name__ == '__main__':
 	#model.genAB.load_state_dict(torch.load(f'models/gen_AB_{epoch}.pt'))
 	#model.genBA.load_state_dict(torch.load(f'models/gen_BA_{epoch}.pt'))
 
-	train(model, trainA, trainB, start_epoch=0, num_epochs=10)
-	#test(trainA, trainB, epoch=47)
+	train(model, trainA, trainB, start_epoch=0, num_epochs=100)
+	#test(trainA, trainB, epoch=9)
 
 
 

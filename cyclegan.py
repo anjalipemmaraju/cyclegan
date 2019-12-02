@@ -32,7 +32,7 @@ class CycleGAN(nn.Module):
                                               lr=self.lr,
                                               betas=(self.beta1, 0.999))
         self.disc_optimizer = torch.optim.Adam(itertools.chain(self.discA.parameters(), self.discB.parameters()),
-                                               lr=self.lr,
+                                               lr=10*self.lr,
                                                betas=(self.beta1, 0.999))
         self.lambda_A = 10
         self.lambda_B = 10
@@ -84,13 +84,6 @@ class CycleGAN(nn.Module):
         # propagate backwards
         tqdm.write(f'fake loss = {disc_fake_loss:.2f} \t real loss = {disc_real_loss:.2f}')
         disc_loss = 0.5 * (disc_real_loss + disc_fake_loss)
-        if disc_loss > 10:
-            im = (real +1 )/2
-            plt.imshow(real)
-            plt.show()
-            fk = (fake+1)/2
-            plt.imshow(fk)
-            plt.show()
         disc_loss.backward()
         return disc_loss
 
@@ -118,7 +111,6 @@ class CycleGAN(nn.Module):
         self.genBA_loss = self.criterion(torch.ones_like(discA_pred), discA_pred)
         self.recA_loss = self.cycle_criterion(self.recA, self.realA) * self.lambda_A
         self.recB_loss = self.cycle_criterion(self.recB, self.realB) * self.lambda_B
-        tqdm.write(f'recA loss = {self.recA_loss:.2f} \t recB loss = {self.recB_loss:.2f}')
         self.gen_loss = self.genAB_loss + self.genBA_loss + self.recA_loss + self.recB_loss
         self.gen_loss.backward()
         return self.gen_loss.item()
