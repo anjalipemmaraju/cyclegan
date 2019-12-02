@@ -22,8 +22,8 @@ class CycleGAN(nn.Module):
         super(CycleGAN, self).__init__()
         self.genAB = Generator()
         self.genBA = Generator()
-        self.discA = Discriminator()
-        self.discB = Discriminator()
+        self.discA = Discriminator(3)
+        self.discB = Discriminator(3)
         self.criterion = torch.nn.MSELoss()
         self.cycle_criterion = torch.nn.L1Loss()
         self.lr = 2e-4
@@ -82,7 +82,15 @@ class CycleGAN(nn.Module):
         pred_fake = disc(fake.detach())
         disc_fake_loss = self.criterion(torch.zeros_like(pred_fake), pred_fake)
         # propagate backwards
+        tqdm.write(f'fake loss = {disc_fake_loss:.2f} \t real loss = {disc_real_loss:.2f}')
         disc_loss = 0.5 * (disc_real_loss + disc_fake_loss)
+        if disc_loss > 10:
+            im = (real +1 )/2
+            plt.imshow(real)
+            plt.show()
+            fk = (fake+1)/2
+            plt.imshow(fk)
+            plt.show()
         disc_loss.backward()
         return disc_loss
 
@@ -103,12 +111,10 @@ class CycleGAN(nn.Module):
     def gen_backward(self):
         # loss identity A and loss identity B?
         discB_pred = self.discB(self.fakeB)
-        tt = torch.ones_like(discB_pred)
-        tqdm.write(f'comp =' {tt})
+        #tt = torch.ones_like(discB_pred)
         self.genAB_loss = self.criterion(torch.ones_like(discB_pred), discB_pred)
         discA_pred = self.discA(self.fakeA)
-        tt = torch.ones_like(discA_pred)
-        tqdm.write(f'comp =' {tt})
+        #tt = torch.ones_like(discA_pred)
         self.genBA_loss = self.criterion(torch.ones_like(discA_pred), discA_pred)
         self.recA_loss = self.cycle_criterion(self.recA, self.realA) * self.lambda_A
         self.recB_loss = self.cycle_criterion(self.recB, self.realB) * self.lambda_B
