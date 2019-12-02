@@ -77,11 +77,11 @@ class CycleGAN(nn.Module):
     def disc_backward(self, disc, real, fake):
         # discriminator should predict real images as 1
         pred_real = disc(real)
-        noise = np.random.uniform(0.0, 0.1, size=pred_real.shape)
+        noise = torch.FloatTensor(np.random.uniform(0.0, 0.1, size=pred_real.shape))
         real_targets = torch.ones_like(pred_real)  - noise
         disc_real_loss = self.criterion(torch.ones_like(pred_real), pred_real)
         # discriminator should predict fake images as 0
-        noise = np.random.uniform(0.0, 0.1, size=pred_real.shape)
+        noise = torch.FloatTensor(np.random.uniform(0.0, 0.1, size=pred_real.shape))
         pred_fake = disc(fake.detach())
         disc_fake_loss = self.criterion(noise, pred_fake)
         
