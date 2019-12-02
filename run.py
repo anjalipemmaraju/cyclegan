@@ -24,7 +24,6 @@ def train(model, trainA, trainB, start_epoch, num_epochs=5):
     discA_losses = list()
     discB_losses = list()
     end_idx = max(len(trainA), len(trainB))
-    model.populate_image_pools()
     for epoch in tqdm(range(start_epoch, num_epochs)):
         np.random.shuffle(trainA)
         np.random.shuffle(trainB)

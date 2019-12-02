@@ -58,13 +58,13 @@ class CycleGAN(nn.Module):
         self.recB = self.genAB(self.fakeA)
 
         # populate image pools
-        if len(self.pool_B) < pool_size:
+        if len(self.pool_B) < self.pool_size:
             self.pool_B.append(self.fakeB.clone().detach())
         else:
             idx = np.random.randint(self.pool_size)
             self.pool_B[idx] = self.fakeB.clone().detach()
 
-        if len(self.pool_A) < pool_size:
+        if len(self.pool_A) < self.pool_size:
             self.pool_A.append(self.fakeA.clone().detach())
         else:
             idx = np.random.randint(self.pool_size)
