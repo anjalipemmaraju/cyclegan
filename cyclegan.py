@@ -50,11 +50,11 @@ class CycleGAN(nn.Module):
         self.realA = realA
         self.realB = realB
         # generate fake image B from real image A
-        self.fakeB = self.genAB(realA)
+        self.fakeB = self.genAB(self.realA)
         # reconstruct image A from fake image B
         self.recA = self.genBA(self.fakeB)
         # generate fake image A from real image B
-        self.fakeA = self.genBA(realB)
+        self.fakeA = self.genBA(self.realB)
         # reconstruct image B from fake image A
         self.recB = self.genAB(self.fakeA)
 
@@ -103,8 +103,12 @@ class CycleGAN(nn.Module):
     def gen_backward(self):
         # loss identity A and loss identity B?
         discB_pred = self.discB(self.fakeB)
+        tt = torch.ones_like(discB_pred)
+        tqdm.write(f'comp =' {tt})
         self.genAB_loss = self.criterion(torch.ones_like(discB_pred), discB_pred)
         discA_pred = self.discA(self.fakeA)
+        tt = torch.ones_like(discA_pred)
+        tqdm.write(f'comp =' {tt})
         self.genBA_loss = self.criterion(torch.ones_like(discA_pred), discA_pred)
         self.recA_loss = self.cycle_criterion(self.recA, self.realA) * self.lambda_A
         self.recB_loss = self.cycle_criterion(self.recB, self.realB) * self.lambda_B
