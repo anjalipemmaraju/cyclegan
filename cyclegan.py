@@ -35,6 +35,12 @@ class CycleGAN(nn.Module):
                                                betas=(self.beta1, 0.999))
         self.lambda_A = 10
         self.lambda_B = 10
+        self.pool_size = 50
+        self.pool_A = list()
+        self.pool_B = list()
+
+
+
 
     ''' Takes real domain images and forwards them through the generators
     i.e. A -> B -> A and B -> A -> B
@@ -51,6 +57,19 @@ class CycleGAN(nn.Module):
         # reconstruct image B from fake image A
         self.recB = self.genAB(self.fakeA)
 
+        # populate image pools
+        if len(self.pool_B) < pool_size:
+            self.pool_B.append(self.fakeB.clone().detach())
+        else:
+            idx = np.random.randint(self.pool_size)
+            self.pool_B[idx] = self.fakeB.clone().detach()
+
+        if len(self.pool_A) < pool_size:
+            self.pool_A.append(self.fakeA.clone().detach())
+        else:
+            idx = np.random.randint(self.pool_size)
+            self.pool_A[idx] = self.fakeA.clone().detach()
+        
     ''' Backpropagates gradients for discriminators given
     a discriminator, real domain images, and fake domain images
     '''
@@ -67,11 +86,13 @@ class CycleGAN(nn.Module):
         return disc_loss
 
     def discA_backward(self):
-        self.discA_loss = self.disc_backward(self.discA, self.realA, self.fakeA)
+        idx = np.random.randint(len(self.pool_A))
+        self.discA_loss = self.disc_backward(self.discA, self.realA, self.pool_A[idx])
         return self.discA_loss.item()
 
     def discB_backward(self):
-        self.discB_loss = self.disc_backward(self.discB, self.realB, self.fakeB)
+        idx = np.random.randint(len(self.pool_B))
+        self.discB_loss = self.disc_backward(self.discB, self.realB, self.pool_B[idx])
         return self.discB_loss.item()
 
     ''' Computes two forms of loss for each of the generators.
