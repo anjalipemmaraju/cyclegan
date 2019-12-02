@@ -107,7 +107,7 @@ class CycleGAN(nn.Module):
         self.genBA_loss = self.criterion(torch.ones_like(discA_pred), discA_pred)
         self.recA_loss = self.cycle_criterion(self.recA, self.realA) * self.lambda_A
         self.recB_loss = self.cycle_criterion(self.recB, self.realB) * self.lambda_B
-        self.gen_loss = self.genAB_loss + self.genBA_loss + self.lambda_A*self.recA_loss + self.lambda_B*self.recB_loss
+        self.gen_loss = self.genAB_loss + self.genBA_loss + self.recA_loss + self.recB_loss
         self.gen_loss.backward()
         return self.gen_loss.item()
 

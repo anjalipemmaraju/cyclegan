@@ -51,27 +51,27 @@ def test(testA, testB, epoch):
 	genAB.load_state_dict(torch.load(f'models/gen_AB_{epoch}.pt', map_location=torch.device('cpu')))
 	genAB.eval()
 	genBA = Generator().to(device)
-	epoch=3
 	genBA.load_state_dict(torch.load(f'models/gen_BA_{epoch}.pt', map_location=torch.device('cpu')))
 	genBA.eval()
 	num_test = 4
 	fig,ax = plt.subplots(nrows=num_test,ncols=4)
 	for i in range(num_test):
+		realA = testA[i]
 		input_A = torch.FloatTensor(testA[i]).reshape(1,3,testA[i].shape[0], testA[i].shape[1]).to(device)
 		fake_B = genAB(input_A)
-		
+		realA = (realA + 1)/2
 		rec_A = genBA(fake_B).detach().cpu().numpy()
 		rec_A = rec_A[0].transpose((1,2,0))
 		rec_A = (rec_A + 1)/2
-		print(np.sum(np.abs(testA[i] - rec_A)))
 
 		fake_B = fake_B[0].detach().cpu().numpy()
 		h_size,w_size = fake_B.shape[1], fake_B.shape[2]
 		output_B = [[(fake_B[0,r,c], fake_B[1,r,c], fake_B[2,r,c]) for c in range(w_size)] for r in range(h_size)]
 		output_B = np.asarray(output_B)
+		output_B = (output_B + 1)/2
 		
 		#fake_B = fake_B[0].transpose((1,2,0))
-		ax[i,0].imshow(testA[i])
+		ax[i,0].imshow(realA)
 		ax[i,1].imshow(output_B)
 		ax[i,2].imshow(rec_A)
 		'''
@@ -85,7 +85,7 @@ def test(testA, testB, epoch):
 
 
 if __name__ == '__main__':
-	
+	'''
 	data_path = 'data/summer2winter_yosemite'
 	trainA_paths = os.listdir(os.path.join(data_path, 'trainA'))
 	trainA_paths = [os.path.join(data_path, 'trainA', path) for path in trainA_paths]
@@ -105,17 +105,17 @@ if __name__ == '__main__':
 			trainA[idxA] = realA
 	np.save('summer2wintertrainA.npy', trainA)
 	np.save('summer2wintertrainB.npy', trainB)
-	
+	'''
 	trainA = np.load('summer2wintertrainA.npy')
 	trainB = np.load('summer2wintertrainB.npy')
 	trainA = (trainA * 2) - 1
 	trainB = (trainB * 2) - 1
 	model = CycleGAN().to(device)
-	#epoch = 4
+	epoch = 0
 	#model.genAB.load_state_dict(torch.load(f'models/gen_AB_{epoch}.pt'))
 	#model.genBA.load_state_dict(torch.load(f'models/gen_BA_{epoch}.pt'))
 
-	train(model, trainA, trainB, start_epoch=0, num_epochs=10)
+	train(model, trainA, trainB, start_epoch=0, num_epochs=50)
 	#test(trainA, trainB, epoch)
 
 
