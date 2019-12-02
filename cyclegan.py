@@ -67,11 +67,11 @@ class CycleGAN(nn.Module):
         return disc_loss
 
     def discA_backward(self):
-        self.discA_loss = self.disc_backward(self.discA, self.realA, self.realA)
+        self.discA_loss = self.disc_backward(self.discA, self.realA, self.fakeA)
         return self.discA_loss.item()
 
     def discB_backward(self):
-        self.discB_loss = self.disc_backward(self.discB, self.realB, self.realB)
+        self.discB_loss = self.disc_backward(self.discB, self.realB, self.fakeB)
         return self.discB_loss.item()
 
     ''' Computes two forms of loss for each of the generators.
