@@ -39,7 +39,8 @@ class CycleGAN(nn.Module):
         self.pool_size = 50
         self.pool_A = list()
         self.pool_B = list()
-
+        use_cuda = torch.cuda.is_available()
+        self.device = torch.device('cuda:0' if use_cuda else 'cpu')     
 
 
 
@@ -77,11 +78,11 @@ class CycleGAN(nn.Module):
     def disc_backward(self, disc, real, fake):
         # discriminator should predict real images as 1
         pred_real = disc(real)
-        noise = torch.FloatTensor(np.random.uniform(0.0, 0.1, size=pred_real.shape))
+        noise = torch.FloatTensor(np.random.uniform(0.0, 0.1, size=pred_real.shape)).to(self.device)
         real_targets = torch.ones_like(pred_real)  - noise
         disc_real_loss = self.criterion(torch.ones_like(pred_real), pred_real)
         # discriminator should predict fake images as 0
-        noise = torch.FloatTensor(np.random.uniform(0.0, 0.1, size=pred_real.shape))
+        noise = torch.FloatTensor(np.random.uniform(0.0, 0.1, size=pred_real.shape)).to(self.device)
         pred_fake = disc(fake.detach())
         disc_fake_loss = self.criterion(noise, pred_fake)
         
