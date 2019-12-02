@@ -27,6 +27,7 @@ def train(model, trainA, trainB, start_epoch, num_epochs=5):
 	for epoch in tqdm(range(start_epoch, num_epochs)):
 		np.random.shuffle(trainA)
 		np.random.shuffle(trainB)
+		total_loss = 0
 		for idx in tqdm(range(end_idx)):
 		#for idxB in range(100):
 				realA = trainA[idx%len(trainA)]
@@ -34,8 +35,11 @@ def train(model, trainA, trainB, start_epoch, num_epochs=5):
 				realB = trainB[idx%len(trainB)]
 				realB = torch.FloatTensor(realB).reshape(1,3,realB.shape[0], realB.shape[1]).to(device)
 				gen_loss, discA_loss, discB_loss = model.optimize_parameters(realA, realB)
+				total_loss += gen_loss
 				if idx %100 == 0:
-						tqdm.write(f'gen_loss = {gen_loss:.2f} \t discA_loss = {discA_loss:.2f} \t discB_loss = {discB_loss:.2f}')
+						avg_loss = total_loss / (idx+1)
+						tqdm.write(f'gen_loss = {avg_loss:.2f} \t discA_loss = {discA_loss:.2f} \t discB_loss = {discB_loss:.2f}')
+		tqdm.write(f'gen_loss = {total_loss/end_idx:.2f} \t discA_loss = {discA_loss:.2f} \t discB_loss = {discB_loss:.2f}')
 		torch.save(model.genAB.state_dict(), f'models/gen_AB_{epoch}.pt')
 		torch.save(model.genBA.state_dict(), f'models/gen_BA_{epoch}.pt')
 
@@ -55,6 +59,7 @@ def test(testA, testB, epoch):
 	for i in range(num_test):
 		input_A = torch.FloatTensor(testA[i]).reshape(1,3,testA[i].shape[0], testA[i].shape[1]).to(device)
 		fake_B = genAB(input_A)
+		
 		rec_A = genBA(fake_B).detach().cpu().numpy()
 		rec_A = rec_A[0].transpose((1,2,0))
 		rec_A = (rec_A + 1)/2
@@ -80,7 +85,7 @@ def test(testA, testB, epoch):
 
 
 if __name__ == '__main__':
-	'''
+	
 	data_path = 'data/summer2winter_yosemite'
 	trainA_paths = os.listdir(os.path.join(data_path, 'trainA'))
 	trainA_paths = [os.path.join(data_path, 'trainA', path) for path in trainA_paths]
@@ -100,16 +105,18 @@ if __name__ == '__main__':
 			trainA[idxA] = realA
 	np.save('summer2wintertrainA.npy', trainA)
 	np.save('summer2wintertrainB.npy', trainB)
-	'''
+	
 	trainA = np.load('summer2wintertrainA.npy')
 	trainB = np.load('summer2wintertrainB.npy')
+	trainA = (trainA * 2) - 1
+	trainB = (trainB * 2) - 1
 	model = CycleGAN().to(device)
-	epoch = 4
+	#epoch = 4
 	#model.genAB.load_state_dict(torch.load(f'models/gen_AB_{epoch}.pt'))
 	#model.genBA.load_state_dict(torch.load(f'models/gen_BA_{epoch}.pt'))
 
-	#train(model, trainA, trainB, start_epoch=0, num_epochs=10)
-	test(trainA, trainB, epoch)
+	train(model, trainA, trainB, start_epoch=0, num_epochs=10)
+	#test(trainA, trainB, epoch)
 
 
 
