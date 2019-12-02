@@ -51,6 +51,7 @@ def test(testA, testB, epoch):
 	genAB.load_state_dict(torch.load(f'models/gen_AB_{epoch}.pt', map_location=torch.device('cpu')))
 	genAB.eval()
 	genBA = Generator().to(device)
+	epoch=3
 	genBA.load_state_dict(torch.load(f'models/gen_BA_{epoch}.pt', map_location=torch.device('cpu')))
 	genBA.eval()
 	num_test = 4
@@ -111,12 +112,12 @@ if __name__ == '__main__':
 	trainA = (trainA * 2) - 1
 	trainB = (trainB * 2) - 1
 	model = CycleGAN().to(device)
-	epoch = 0
+	#epoch = 4
 	#model.genAB.load_state_dict(torch.load(f'models/gen_AB_{epoch}.pt'))
 	#model.genBA.load_state_dict(torch.load(f'models/gen_BA_{epoch}.pt'))
 
-	train(model, trainA, trainB, start_epoch=0, num_epochs=50)
-	#test(trainA, trainB, epoch)
+	#train(model, trainA, trainB, start_epoch=0, num_epochs=10)
+	test(trainA, trainB, epoch=47)
 
 
 

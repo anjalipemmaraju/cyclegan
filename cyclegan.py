@@ -12,6 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches
 import itertools
+from tqdm import tqdm
 
 from gen import Generator
 from disc import Discriminator
@@ -107,6 +108,7 @@ class CycleGAN(nn.Module):
         self.genBA_loss = self.criterion(torch.ones_like(discA_pred), discA_pred)
         self.recA_loss = self.cycle_criterion(self.recA, self.realA) * self.lambda_A
         self.recB_loss = self.cycle_criterion(self.recB, self.realB) * self.lambda_B
+        tqdm.write(f'recA loss = {self.recA_loss:.2f} \t recB loss = {self.recB_loss:.2f}')
         self.gen_loss = self.genAB_loss + self.genBA_loss + self.recA_loss + self.recB_loss
         self.gen_loss.backward()
         return self.gen_loss.item()
