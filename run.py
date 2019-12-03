@@ -111,8 +111,8 @@ if __name__ == '__main__':
 	#model.genAB.load_state_dict(torch.load(f'models/gen_AB_{epoch}.pt'))
 	#model.genBA.load_state_dict(torch.load(f'models/gen_BA_{epoch}.pt'))
 
-	#train(model, trainA, trainB, start_epoch=0, num_epochs=100)
-	test(trainA, trainB, epoch=40)
+	train(model, trainA, trainB, start_epoch=0, num_epochs=100)
+	#test(trainA, trainB, epoch=40)
 
 
 
